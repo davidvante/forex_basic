@@ -83,6 +83,19 @@
                     <div class="chapter-arrow">→</div>
                 </div>
             </div>
+
+            <!-- Quiz Section -->
+            <div class="quiz-section">
+                <h2 class="section-title">📝 Kiểm tra kiến thức</h2>
+                <div class="quiz-card" onclick="openQuiz()">
+                    <div class="quiz-icon">🎯</div>
+                    <div class="quiz-info">
+                        <h3>Test Kiến Thức Forex & Prop Firm</h3>
+                        <p>21 câu hỏi trắc nghiệm • Kiểm tra độ sẵn sàng của bạn</p>
+                    </div>
+                    <div class="quiz-arrow">→</div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -104,6 +117,19 @@
             <button class="nav-btn" id="nextChapter" onclick="navigateChapter(1)">
                 Chương sau →
             </button>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div class="modal" id="quizModal">
+        <div class="modal-header">
+            <button class="back-btn" onclick="closeQuiz()">
+                <span>←</span> Quay lại
+            </button>
+            <span class="quiz-progress" id="quizProgress">Câu 1/20</span>
+        </div>
+        <div class="modal-content quiz-content" id="quizContent">
+            <!-- Quiz content loaded dynamically -->
         </div>
     </div>
 

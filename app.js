@@ -953,6 +953,9 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.classList.contains('active')) {
         closeChapter();
     }
+    if (e.key === 'Escape' && quizModal.classList.contains('active')) {
+        closeQuiz();
+    }
 });
 
 // Handle back button on mobile
@@ -960,5 +963,386 @@ window.addEventListener('popstate', () => {
     if (modal.classList.contains('active')) {
         closeChapter();
     }
+    if (quizModal.classList.contains('active')) {
+        closeQuiz();
+    }
 });
 
+// ===== Quiz Data =====
+const quizData = [
+    {
+        question: "Forex là gì?",
+        options: [
+            "Thị trường giao dịch cổ phiếu toàn cầu",
+            "Thị trường giao dịch ngoại hối (Foreign Exchange)",
+            "Thị trường giao dịch hàng hóa",
+            "Thị trường giao dịch trái phiếu"
+        ],
+        correct: 1,
+        explanation: "Forex = Foreign Exchange = Thị trường ngoại hối"
+    },
+    {
+        question: "Trong cặp EUR/USD, đâu là đồng tiền cơ sở (Base Currency)?",
+        options: ["USD", "EUR", "Cả hai", "Không có đồng nào"],
+        correct: 1,
+        explanation: "EUR là base currency (đứng trước), USD là quote currency"
+    },
+    {
+        question: "1 Pip của cặp EUR/USD tương đương với bao nhiêu?",
+        options: ["0.1", "0.01", "0.001", "0.0001"],
+        correct: 3,
+        explanation: "Với hầu hết các cặp forex, 1 pip = 0.0001 (chữ số thập phân thứ 4)"
+    },
+    {
+        question: "Với 1 Standard Lot (1.0 lot) vàng XAU/USD, giá trị 1 pip xấp xỉ bao nhiêu USD?",
+        options: ["$0.10", "$1", "$10", "$100"],
+        correct: 2,
+        explanation: "Với vàng XAU/USD, 1 pip = 0.10; 1 lot (100 oz) ⇒ $0.10 × 100 ≈ $10/pip"
+    },
+    {
+        question: "Với 1 Standard Lot (1.0 lot) EUR/USD, giá trị 1 pip xấp xỉ bao nhiêu USD?",
+        options: ["$1", "$10", "$100", "$0.10"],
+        correct: 1,
+        explanation: "1.0 lot ≈ $10/pip với các cặp xxxUSD"
+    },
+    {
+        question: "Đòn bẩy 1:100 có nghĩa là gì?",
+        options: [
+            "Bạn chỉ cần 1% vốn để kiểm soát 100% giá trị giao dịch",
+            "Bạn được lãi gấp 100 lần",
+            "Bạn chỉ có thể thua tối đa 1%",
+            "Bạn phải đặt cọc 100% giá trị giao dịch"
+        ],
+        correct: 0,
+        explanation: "Đòn bẩy 1:100 = Margin 1% = Kiểm soát $100 với $1 vốn"
+    },
+    {
+        question: "Spread là gì?",
+        options: [
+            "Phí rút tiền từ sàn",
+            "Chênh lệch giữa giá Bid và giá Ask",
+            "Lãi suất qua đêm",
+            "Phí mở tài khoản"
+        ],
+        correct: 1,
+        explanation: "Spread = Ask - Bid, là chi phí giao dịch"
+    },
+    {
+        question: "Khung giờ nào có thanh khoản cao nhất trong ngày (theo giờ Việt Nam)?",
+        options: ["05:00 - 10:00", "10:00 - 14:00", "19:00 - 23:00", "00:00 - 05:00"],
+        correct: 2,
+        explanation: "19:00-23:00 (VN) = London + New York overlap"
+    },
+    {
+        question: "Lệnh Buy Limit được sử dụng khi nào?",
+        options: [
+            "Muốn mua ở giá cao hơn giá hiện tại",
+            "Muốn mua ở giá thấp hơn giá hiện tại",
+            "Muốn bán ở giá cao hơn giá hiện tại",
+            "Muốn bán ở giá thấp hơn giá hiện tại"
+        ],
+        correct: 1,
+        explanation: "Buy Limit = Chờ mua ở giá thấp hơn (giá tốt hơn)"
+    },
+    {
+        question: "Nến Hammer xuất hiện ở đáy xu hướng giảm thường báo hiệu điều gì?",
+        options: [
+            "Xu hướng giảm sẽ tiếp tục",
+            "Có thể đảo chiều tăng",
+            "Thị trường sẽ đi ngang",
+            "Không có ý nghĩa gì"
+        ],
+        correct: 1,
+        explanation: "Hammer ở đáy = Tín hiệu đảo chiều tăng tiềm năng"
+    },
+    {
+        question: "\"Trend is your friend\" có nghĩa là gì?",
+        options: [
+            "Nên giao dịch ngược xu hướng",
+            "Nên giao dịch theo xu hướng",
+            "Nên chờ đợi xu hướng kết thúc",
+            "Xu hướng không quan trọng"
+        ],
+        correct: 1,
+        explanation: "Giao dịch theo xu hướng có xác suất thành công cao hơn"
+    },
+    {
+        question: "Theo quy tắc quản lý rủi ro, mỗi lệnh nên rủi ro tối đa bao nhiêu % tài khoản?",
+        options: ["5-10%", "3-5%", "1-2%", "10-20%"],
+        correct: 2,
+        explanation: "Quy tắc 1-2% giúp bảo vệ vốn và sống sót lâu dài"
+    },
+    {
+        question: "Nếu tài khoản giảm 50%, bạn cần lời bao nhiêu % để về hòa vốn?",
+        options: ["50%", "75%", "100%", "150%"],
+        correct: 2,
+        explanation: "Toán học: 100/50 - 1 = 100% cần để phục hồi"
+    },
+    {
+        question: "Risk/Reward ratio 1:2 có nghĩa là gì?",
+        options: [
+            "Bạn rủi ro 2 để kiếm 1",
+            "Bạn rủi ro 1 để kiếm 2",
+            "Bạn cần thắng 2 lệnh để bù 1 lệnh thua",
+            "Bạn cần win rate 50%"
+        ],
+        correct: 1,
+        explanation: "R:R 1:2 = Mỗi $1 rủi ro có thể kiếm $2 lợi nhuận"
+    },
+    {
+        question: "Công thức tính Lot Size là gì?",
+        options: [
+            "Lot = Số tiền rủi ro × SL pips",
+            "Lot = Số tiền rủi ro / (SL pips × Giá trị 1 pip)",
+            "Lot = Vốn / Đòn bẩy",
+            "Lot = SL pips / Số tiền rủi ro"
+        ],
+        correct: 1,
+        explanation: "Lot = Số tiền rủi ro / (SL (pips) × Giá trị 1 pip)"
+    },
+    {
+        question: "FOMO trong giao dịch là gì?",
+        options: [
+            "Sợ mất cơ hội (Fear Of Missing Out)",
+            "Phương pháp phân tích kỹ thuật",
+            "Loại lệnh đặc biệt",
+            "Chiến lược giao dịch"
+        ],
+        correct: 0,
+        explanation: "FOMO = Fear Of Missing Out, dẫn đến vào lệnh vội vàng"
+    },
+    {
+        question: "Prop Firm là gì?",
+        options: [
+            "Sàn giao dịch Forex",
+            "Công ty cấp vốn cho trader giao dịch",
+            "Quỹ đầu tư chứng khoán",
+            "Ngân hàng cung cấp dịch vụ Forex"
+        ],
+        correct: 1,
+        explanation: "Prop Firm cấp vốn cho trader và chia lợi nhuận"
+    },
+    {
+        question: "Daily Drawdown 5% trên tài khoản $100,000 có nghĩa là gì?",
+        options: [
+            "Bạn phải kiếm ít nhất $5,000/ngày",
+            "Bạn không được lỗ quá $5,000 trong 1 ngày",
+            "Bạn được lỗ tối đa $5,000 toàn bộ challenge",
+            "Phí thi mỗi ngày là $5,000"
+        ],
+        correct: 1,
+        explanation: "Daily DD 5% = Không được lỗ quá 5% trong 1 ngày"
+    },
+    {
+        question: "Trailing Max Drawdown khác gì với Static Max Drawdown?",
+        options: [
+            "Trailing DD cố định, Static DD thay đổi",
+            "Trailing DD dời theo đỉnh equity, Static DD cố định từ đầu",
+            "Trailing DD chỉ tính trong ngày",
+            "Không có sự khác biệt"
+        ],
+        correct: 1,
+        explanation: "Trailing DD dời theo đỉnh equity; Static DD cố định từ lúc bắt đầu"
+    },
+    {
+        question: "Hành vi nào thường BỊ CẤM trong hầu hết các Prop Firm?",
+        options: [
+            "Đặt Stop Loss",
+            "Giao dịch theo xu hướng",
+            "Martingale / Grid trading",
+            "Sử dụng phân tích kỹ thuật"
+        ],
+        correct: 2,
+        explanation: "Martingale/Grid bị cấm vì rủi ro cao và thiếu quản lý rủi ro"
+    },
+    {
+        question: "Khi thi Prop Firm, điều quan trọng nhất là gì?",
+        options: [
+            "Đạt target profit càng nhanh càng tốt",
+            "Không vi phạm rules và bảo vệ tài khoản",
+            "Giao dịch càng nhiều lệnh càng tốt",
+            "Sử dụng đòn bẩy cao nhất có thể"
+        ],
+        correct: 1,
+        explanation: "Mục tiêu #1 = Không bị loại, không phải thắng nhanh"
+    }
+];
+
+// ===== Quiz State =====
+let currentQuestion = 0;
+let userAnswers = [];
+let quizCompleted = false;
+
+// ===== Quiz DOM Elements =====
+const quizModal = document.getElementById('quizModal');
+const quizContent = document.getElementById('quizContent');
+const quizProgress = document.getElementById('quizProgress');
+
+// ===== Quiz Functions =====
+function openQuiz() {
+    currentQuestion = 0;
+    userAnswers = new Array(quizData.length).fill(null);
+    quizCompleted = false;
+    renderQuizQuestion();
+    quizModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeQuiz() {
+    quizModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function renderQuizQuestion() {
+    if (quizCompleted) {
+        renderQuizResults();
+        return;
+    }
+
+    const q = quizData[currentQuestion];
+    const hasAnswered = userAnswers[currentQuestion] !== null;
+    const isCorrect = hasAnswered && userAnswers[currentQuestion] === q.correct;
+
+    quizProgress.textContent = `Câu ${currentQuestion + 1}/${quizData.length}`;
+
+    let optionsHTML = q.options.map((opt, index) => {
+        let optionClass = 'quiz-option';
+        if (hasAnswered) {
+            if (index === q.correct) {
+                optionClass += ' correct';
+            } else if (index === userAnswers[currentQuestion] && index !== q.correct) {
+                optionClass += ' incorrect';
+            }
+        } else if (userAnswers[currentQuestion] === index) {
+            optionClass += ' selected';
+        }
+
+        const letter = ['A', 'B', 'C', 'D'][index];
+        const clickHandler = hasAnswered ? '' : `onclick="selectAnswer(${index})"`;
+
+        return `
+            <div class="${optionClass}" ${clickHandler}>
+                <span class="quiz-option-letter">${letter}</span>
+                <span class="quiz-option-text">${opt}</span>
+            </div>
+        `;
+    }).join('');
+
+    const explanationClass = hasAnswered ? 'quiz-explanation show' : 'quiz-explanation';
+    const explanationHTML = `
+        <div class="${explanationClass}">
+            <strong>Giải thích:</strong> ${q.explanation}
+        </div>
+    `;
+
+    const isLastQuestion = currentQuestion === quizData.length - 1;
+    const nextBtnText = isLastQuestion ? 'Xem kết quả' : 'Câu tiếp theo →';
+
+    quizContent.innerHTML = `
+        <div class="quiz-question-card">
+            <span class="quiz-question-num">Câu ${currentQuestion + 1}</span>
+            <div class="quiz-question-text">${q.question}</div>
+            <div class="quiz-options">
+                ${optionsHTML}
+            </div>
+            ${explanationHTML}
+        </div>
+        <div class="quiz-nav">
+            <button class="quiz-nav-btn" onclick="prevQuestion()" ${currentQuestion === 0 ? 'disabled' : ''}>
+                ← Câu trước
+            </button>
+            <button class="quiz-nav-btn primary" onclick="nextQuestion()" ${!hasAnswered ? 'disabled' : ''}>
+                ${nextBtnText}
+            </button>
+        </div>
+    `;
+
+    quizContent.scrollTop = 0;
+}
+
+function selectAnswer(index) {
+    userAnswers[currentQuestion] = index;
+    renderQuizQuestion();
+}
+
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuizQuestion();
+    }
+}
+
+function nextQuestion() {
+    if (currentQuestion < quizData.length - 1) {
+        currentQuestion++;
+        renderQuizQuestion();
+    } else {
+        quizCompleted = true;
+        renderQuizResults();
+    }
+}
+
+function renderQuizResults() {
+    const correctCount = userAnswers.filter((ans, idx) => ans === quizData[idx].correct).length;
+    const incorrectCount = quizData.length - correctCount;
+    const percentage = Math.round((correctCount / quizData.length) * 100);
+
+    let icon, stars, message;
+    if (correctCount >= 19) {
+        icon = '🏆';
+        stars = '⭐⭐⭐⭐⭐';
+        message = 'Xuất sắc! Bạn đã sẵn sàng cho Prop Firm Challenge!';
+    } else if (correctCount >= 16) {
+        icon = '🎉';
+        stars = '⭐⭐⭐⭐';
+        message = 'Tốt! Cần ôn lại một vài khái niệm trước khi thi quỹ.';
+    } else if (correctCount >= 13) {
+        icon = '👍';
+        stars = '⭐⭐⭐';
+        message = 'Khá! Nên học thêm trước khi thử sức với Prop Firm.';
+    } else if (correctCount >= 10) {
+        icon = '📚';
+        stars = '⭐⭐';
+        message = 'Trung bình. Cần học kỹ lại các chương trước khi giao dịch thật.';
+    } else {
+        icon = '📖';
+        stars = '⭐';
+        message = 'Hãy dành thời gian học từ đầu trước khi tiếp tục.';
+    }
+
+    quizProgress.textContent = 'Kết quả';
+
+    quizContent.innerHTML = `
+        <div class="quiz-results">
+            <div class="quiz-results-icon">${icon}</div>
+            <div class="quiz-results-score">${correctCount}/${quizData.length}</div>
+            <div class="quiz-results-text">Bạn đạt ${percentage}% số câu đúng</div>
+            <div class="quiz-results-rating">
+                <span class="quiz-results-stars">${stars}</span>
+            </div>
+            <div class="quiz-results-message">${message}</div>
+            <div class="quiz-results-breakdown">
+                <div class="quiz-stat">
+                    <div class="quiz-stat-value correct">${correctCount}</div>
+                    <div class="quiz-stat-label">Đúng</div>
+                </div>
+                <div class="quiz-stat">
+                    <div class="quiz-stat-value incorrect">${incorrectCount}</div>
+                    <div class="quiz-stat-label">Sai</div>
+                </div>
+            </div>
+            <button class="quiz-restart-btn" onclick="restartQuiz()">
+                🔄 Làm lại bài test
+            </button>
+        </div>
+    `;
+
+    quizContent.scrollTop = 0;
+}
+
+function restartQuiz() {
+    currentQuestion = 0;
+    userAnswers = new Array(quizData.length).fill(null);
+    quizCompleted = false;
+    renderQuizQuestion();
+}
